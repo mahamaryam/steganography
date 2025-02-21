@@ -22,14 +22,13 @@ def encode_message(image_path, message):
     pixels = np.asarray(img) 
     
     
-    #this is purely optional in my pov.
-    # Check if image can hold the message
+    #this is purely optional 
+    #check if image can hold the message
     max_bytes = pixels.size // 8
     message_size = len(binary_message)
     if message_size > max_bytes:
-        raise ValueError(f"Message too large. Image can only store {max_bytes} bytes.")
+        raise ValueError(f"no way")
     
-    # Create a modifiable copy of the pixel array
     #Pixel values in images are typically stored as 8-bit unsigned integers (uint8), representing values in the range [0, 255].
 #Ensuring the data type explicitly with dtype=np.uint8 prevents issues during manipulation, such as overflow or invalid values.
 #When modifying the least significant bit (LSB) of pixel values, it's crucial to stay within the valid range of 0–255.
@@ -40,25 +39,19 @@ def encode_message(image_path, message):
 #The uint8 data type inherently enforces the [0, 255] range. Any value set outside this range automatically wraps around: -1 becomes 255 (underflow).  256 becomes 0 (overflow).
     encoded_pixels = np.array(pixels, dtype=np.uint8)
     
-    # Encode message bit by bit
     for i in range(len(binary_message)):
         #THE REAL OG LOGIC
-        pixel_index = i // 3  # Get the pixel index
-        color_index = i % 3   # Get the color channel index (R,G,B)
+        pixel_index = i // 3  #getting the pixel index
+        color_index = i % 3   #getting the color channel index 
         row = pixel_index // pixels.shape[1]
         col = pixel_index % pixels.shape[1]
         
-        # Get the bit to encode
         bit = int(binary_message[i])
-        
-        # Get current pixel value
         pixel_value = int(encoded_pixels[row, col, color_index])
-        
-        # Clear LSB and set new bit
         if bit == 1:
-            pixel_value = pixel_value | 1  # Set LSB to 1
+            pixel_value = pixel_value | 1
         else:
-            pixel_value = pixel_value & ~1  # Set LSB to 0
+            pixel_value = pixel_value & ~1  
             
         #ensure value stays within uint8 range... wraps around in case of underflow or overflow. (modulus logic).
         pixel_value = np.clip(pixel_value, 0, 255)
@@ -71,20 +64,10 @@ def encode_message(image_path, message):
     encoded_image.save(image_path, 'PNG')
 
 def decode_message(image_path):
-    """
-    Decode a message from a PNG image using LSB steganography.
-    
-    Args:
-        image_path (str): Path to the encoded PNG image
-        
-    Returns:
-        str: Decoded message
-    """
     #open image and convert to numpy array
     img = Image.open(image_path).convert('RGB')
     pixels = np.array(img, dtype=np.uint8)
     
-    # Extract binary message
     binary_message = ''
     byte_accumulator = ''
     decoded_bytes = bytearray()
@@ -92,15 +75,13 @@ def decode_message(image_path):
     for row in range(pixels.shape[0]):
         for col in range(pixels.shape[1]):
             for color_channel in range(3):
-                # Extract LSB
                 bit = pixels[row, col, color_channel] & 1
                 byte_accumulator += str(bit)
                 
-                # Process complete bytes
                 if len(byte_accumulator) == 8:
                     byte_value = int(byte_accumulator, 2)
-                    if byte_value == 0:  # Check for delimiter
-                        if decoded_bytes:  # Only decode if we have actual data
+                    if byte_value == 0:  
+                        if decoded_bytes:  
                             return decoded_bytes.decode('utf-8')
                         return ""
                     decoded_bytes.append(byte_value)
@@ -111,16 +92,14 @@ def decode_message(image_path):
     return ""
 
 def main():
-    # Ensure there are enough arguments
     if len(sys.argv) < 2:
         print("use -help to see how to use")
         sys.exit(1)
 
-    # Handle the -encode option
     if sys.argv[1] == '-e' or sys.argv[1] == "--encode":
         if len(sys.argv) != 4:
-            print("Error: You need to provide both an image path and a message.")
-            print("Usage: python3 lsbSteggi.py -encode <image_path> <message>")
+            print("provide both an image path and a message.")
+            print("python3 encoder.py -encode <image_path> <message>")
             sys.exit(1)
 
         image_path = sys.argv[2]
@@ -128,26 +107,25 @@ def main():
         encode_message(image_path, message)
         print("Message encoded")
     
-    # Handle the -decode option
     elif sys.argv[1] == '-d' or sys.argv[1] == "--decode":
         if len(sys.argv) != 3:
-            print("Error: You need to provide an image path for decoding.")
-            print("Usage: python3 lsbSteggi.py -decode <image_path>")
+            print("You need to provide an image path for decoding.")
+            print("python3 encoder.py -decode <image_path>")
             sys.exit(1)
 
         image_path = sys.argv[2]
         decoded_message = decode_message(image_path)
-        print("Decoded Message: ", decoded_message)
+        print("decoded Message: ", decoded_message)
      
     elif sys.argv[1] == '-h' or sys.argv[1] == "--help":
-    	print("Help: python3 claudeSteggi.py --help or -h")
-    	print("Encode: python3 lsbSteggi.py --encode <image.png> <message> or -e")
-    	print("Decode: python3 lsbSteggi.py --decode <image.png> or -d")
+    	print("python3 encoder.py --help or -h")
+    	print("encode: python3 encoder.py --encode <image.png> <message> or -e")
+    	print("decode: python3 encoder.py --decode <image.png> or -d")
     
     # If no valid option provided
     else:
-        print("Invalid option. Use -encode or -decode.")
-        print("Usage: python3 lsbSteggi.py -encode <image_path> <message> or -decode <image_path>")
+        print("Invalid")
+        print("python3 encoder.py -encode <image_path> <message> or -decode <image_path>")
 
 if __name__ == '__main__':
     main()
