@@ -4,11 +4,9 @@ import shutil
 import os
 
 def hide_text(mp4_path, text, output_path):
-    """Hide text in MP4 metadata"""
     if not os.path.exists(mp4_path):
         raise FileNotFoundError(f"Input file not found: {mp4_path}")
         
-    # Create a copy of the original file
     shutil.copy2(mp4_path, output_path)
     
     try:
@@ -19,12 +17,11 @@ def hide_text(mp4_path, text, output_path):
     except Exception as e:
         if os.path.exists(output_path):
             os.remove(output_path)
-        raise Exception(f"Failed to hide text: {str(e)}")
+        raise Exception(f"failure")
 
 def retrieve_text(mp4_path):
-    """Extract hidden text from MP4 metadata"""
     if not os.path.exists(mp4_path):
-        raise FileNotFoundError(f"File not found: {mp4_path}")
+        raise FileNotFoundError(f"file not found")
         
     video = MP4(mp4_path)
     
